@@ -8,22 +8,63 @@ import Foundation
 public class GaussianBlur: TwoStageOperation {
     public var blurRadiusInPixels:Float {
         didSet {
-            let (sigma, downsamplingFactor) = sigmaAndDownsamplingForBlurRadius(blurRadiusInPixels, limit:8.0, override:overrideDownsamplingOptimization)
+            let (sigma, downsamplingFactor) = sigmaAndDownsamplingForBlurRadius(blurRadiusInPixels,
+                                                                                limit:8.0,
+                                                                                override:overrideDownsamplingOptimization)
             sharedImageProcessingContext.runOperationAsynchronously {
                 self.downsamplingFactor = downsamplingFactor
                 let pixelRadius = pixelRadiusForBlurSigma(Double(sigma))
-                self.shader = crashOnShaderCompileFailure("GaussianBlur"){try sharedImageProcessingContext.programForVertexShader(vertexShaderForOptimizedGaussianBlurOfRadius(pixelRadius, sigma:Double(sigma)), fragmentShader:fragmentShaderForOptimizedGaussianBlurOfRadius(pixelRadius, sigma:Double(sigma)))}
+                let optimizedOffsets = optimizedGaussianOffsetsForRadius(pixelRadius, sigma: Double(sigma))
+                let standardWeights = standardGaussianWeightsForRadius(pixelRadius, sigma: Double(sigma))
+                self.setUniforms(optimizedOffsets:optimizedOffsets, standardWeights:standardWeights)
+                
+                self.shader = crashOnShaderCompileFailure("GaussianBlur"){
+                    let vertexShader = vertexShaderForOptimizedGaussianBlurOfRadius(pixelRadius,
+                                                                                    sigma:Double(sigma),
+                                                                                    optimizedOffsets:optimizedOffsets)
+                    let fragmentShader = fragmentShaderForOptimizedGaussianBlurOfRadius(pixelRadius,
+                                                                                        sigma:Double(sigma),
+                                                                                        standardWeights: standardWeights)
+                        
+                    return try sharedImageProcessingContext.programForVertexShader(vertexShader,
+                                                                                   fragmentShader: fragmentShader)
+                }
             }
         }
     }
     
     public init() {
-        blurRadiusInPixels = 2.0
+        let sigma = 2.0
+        blurRadiusInPixels = Float(sigma)
         let pixelRadius = pixelRadiusForBlurSigma(round(Double(blurRadiusInPixels)))
-        let initialShader = crashOnShaderCompileFailure("GaussianBlur"){try sharedImageProcessingContext.programForVertexShader(vertexShaderForOptimizedGaussianBlurOfRadius(pixelRadius, sigma:2.0), fragmentShader:fragmentShaderForOptimizedGaussianBlurOfRadius(pixelRadius, sigma:2.0))}
+        let optimizedOffsets = optimizedGaussianOffsetsForRadius(pixelRadius, sigma: sigma)
+        let standardWeights = standardGaussianWeightsForRadius(pixelRadius, sigma: sigma)
+        let initialShader: ShaderProgram = crashOnShaderCompileFailure("GaussianBlur") {
+            let vertexShader = vertexShaderForOptimizedGaussianBlurOfRadius(pixelRadius,
+                                                                            sigma:sigma,
+                                                                            optimizedOffsets: optimizedOffsets)
+            let fragmentShader = fragmentShaderForOptimizedGaussianBlurOfRadius(pixelRadius, sigma:sigma)
+            return try sharedImageProcessingContext.programForVertexShader(vertexShader,
+                                                                           fragmentShader: fragmentShader)
+        }
         super.init(shader:initialShader, numberOfInputs:1)
+        self.setUniforms(optimizedOffsets: optimizedOffsets, standardWeights: standardWeights);
     }
-    
+    func setUniforms(optimizedOffsets:[Double], standardWeights:[Double]) {
+        let optimizedOffsetsFloats = floats(fromDoubles: optimizedOffsets)
+        self.uniformSettings["optimizedOffsets"] = optimizedOffsetsFloats
+        
+        let standardWeightsFloats = floats(fromDoubles: standardWeights)
+        self.uniformSettings["standardWeights"] = standardWeightsFloats
+    }
+    func floats(fromDoubles doubles:[Double]) -> [Float] {
+        return doubles.reduce([Float](), { current, offset in
+            var mutable = current
+            mutable.append(Float(offset))
+            return mutable
+        })
+
+    }
 }
 
 // MARK: -
@@ -136,69 +177,73 @@ func optimizedGaussianOffsetsForRadius(_ blurRadius:UInt, sigma:Double) -> [Doub
 }
 
 func vertexShaderForOptimizedGaussianBlurOfRadius(_ radius:UInt, sigma:Double) -> String {
-    guard (radius > 0) else { return OneInputVertexShader }
+    let optimizedOffsets = optimizedGaussianOffsetsForRadius(radius, sigma: sigma)
+    return vertexShaderForOptimizedGaussianBlurOfRadius(radius, sigma: sigma, optimizedOffsets: optimizedOffsets)
+}
 
-    let optimizedOffsets = optimizedGaussianOffsetsForRadius(radius, sigma:sigma)
+func vertexShaderForOptimizedGaussianBlurOfRadius(_ radius:UInt, sigma:Double, optimizedOffsets:[Double]) -> String {
+    guard (radius > 0) else { return OneInputVertexShader }
+    let shaderString = OptimizedGaussianBlurVertexShader
     let numberOfOptimizedOffsets = optimizedOffsets.count
+    let blurCoordinatesCount = 1 + (numberOfOptimizedOffsets * 2)
+    let defines: [String: CustomStringConvertible] = [
+        "BLUR_COORDINATES_COUNT": blurCoordinatesCount,
+        "OPTIMIZED_OFFSETS_COUNT": numberOfOptimizedOffsets
+    ]
     
-    // Header
-    var shaderString = "attribute vec4 position;\n attribute vec4 inputTextureCoordinate;\n \n uniform float texelWidth;\n uniform float texelHeight;\n \n varying vec2 blurCoordinates[\((1 + (numberOfOptimizedOffsets * 2)))];\n \n void main()\n {\n gl_Position = position;\n \n vec2 singleStepOffset = vec2(texelWidth, texelHeight);\n"
-    shaderString += "blurCoordinates[0] = inputTextureCoordinate.xy;\n"
-    for currentOptimizedOffset in 0..<numberOfOptimizedOffsets {
-        shaderString += "blurCoordinates[\(((currentOptimizedOffset * 2) + 1))] = inputTextureCoordinate.xy + singleStepOffset * \(optimizedOffsets[currentOptimizedOffset]);\n"
-        shaderString += "blurCoordinates[\(((currentOptimizedOffset * 2) + 2))] = inputTextureCoordinate.xy - singleStepOffset * \(optimizedOffsets[currentOptimizedOffset]);\n"
-    }
-    
-    shaderString += "}\n"
-    return shaderString
+    let preprocessedShader = preprocessShader(shader: shaderString,
+                                              defines: defines)
+    return preprocessedShader
 }
 
 func fragmentShaderForOptimizedGaussianBlurOfRadius(_ radius:UInt, sigma:Double) -> String {
+    let standardWeights = standardGaussianWeightsForRadius(radius, sigma:sigma)
+    return fragmentShaderForOptimizedGaussianBlurOfRadius(radius, sigma: sigma, standardWeights: standardWeights)
+}
+
+func fragmentShaderForOptimizedGaussianBlurOfRadius(_ radius:UInt, sigma:Double, standardWeights:[Double]) -> String {
     guard (radius > 0) else { return PassthroughFragmentShader }
     
-    let standardWeights = standardGaussianWeightsForRadius(radius, sigma:sigma)
     let numberOfOptimizedOffsets = min(radius / 2 + (radius % 2), 7)
     let trueNumberOfOptimizedOffsets = radius / 2 + (radius % 2)
-
-#if GLES
-        var shaderString = "uniform sampler2D inputImageTexture;\n uniform highp float texelWidth;\n uniform highp float texelHeight;\n \n varying highp vec2 blurCoordinates[\(1 + (numberOfOptimizedOffsets * 2))];\n \n void main()\n {\n lowp vec4 sum = vec4(0.0);\n"
-#else
-        var shaderString = "uniform sampler2D inputImageTexture;\n uniform float texelWidth;\n uniform float texelHeight;\n \n varying vec2 blurCoordinates[\(1 + (numberOfOptimizedOffsets * 2))];\n \n void main()\n {\n vec4 sum = vec4(0.0);\n"
-#endif
-
-    // Inner texture loop
-    shaderString += "sum += texture2D(inputImageTexture, blurCoordinates[0]) * \(standardWeights[0]);\n"
+    let shaderString = OptimizedGaussianBlurFragmentShader
+    let blurCoordinatesCount = 1 + (numberOfOptimizedOffsets * 2)
     
-    for currentBlurCoordinateIndex in 0..<numberOfOptimizedOffsets {
-        let firstWeight = standardWeights[Int(currentBlurCoordinateIndex * 2 + 1)]
-        let secondWeight = standardWeights[Int(currentBlurCoordinateIndex * 2 + 2)]
-        let optimizedWeight = firstWeight + secondWeight
-        
-        shaderString += "sum += texture2D(inputImageTexture, blurCoordinates[\((currentBlurCoordinateIndex * 2) + 1)]) * \(optimizedWeight);\n"
-        shaderString += "sum += texture2D(inputImageTexture, blurCoordinates[\((currentBlurCoordinateIndex * 2) + 2)]) * \(optimizedWeight);\n"
+    
+    let defines: [String: CustomStringConvertible] = [
+        "BLUR_COORDINATES_COUNT": blurCoordinatesCount,
+        "STANDARD_WEIGHTS_COUNT": standardWeights.count,
+        "NUMBER_OF_OPTIMIZED_OFFSETS": numberOfOptimizedOffsets,
+        "TRUE_OPTIMIZED_OFFSETS_COUNT": trueNumberOfOptimizedOffsets,
+    ]
+    
+    let preprocessedShader = preprocessShader(shader: shaderString,
+                                              defines: defines)
+    return preprocessedShader
+}
+
+// MARK: - Move into Globals
+
+fileprivate func preprocessShader(shader originalShader: String, defines: [String: CustomStringConvertible]) -> String {
+    var shader = originalShader
+    for (token, value) in defines {
+        shader = shader.replacingOccurrences(of: token, with: String(describing: value))
     }
     
-    // If the number of required samples exceeds the amount we can pass in via varyings, we have to do dependent texture reads in the fragment shader
-    if (trueNumberOfOptimizedOffsets > numberOfOptimizedOffsets) {
-#if GLES
-            shaderString += "highp vec2 singleStepOffset = vec2(texelWidth, texelHeight);\n"
-#else
-            shaderString += "vec2 singleStepOffset = vec2(texelWidth, texelHeight);\n"
-#endif
-    }
+    return shader
+}
 
-    for currentOverlowTextureRead in numberOfOptimizedOffsets..<trueNumberOfOptimizedOffsets {
-        let firstWeight = standardWeights[Int(currentOverlowTextureRead * 2 + 1)];
-        let secondWeight = standardWeights[Int(currentOverlowTextureRead * 2 + 2)];
-        
-        let optimizedWeight = firstWeight + secondWeight
-        let optimizedOffset = (firstWeight * (Double(currentOverlowTextureRead) * 2.0 + 1.0) + secondWeight * (Double(currentOverlowTextureRead) * 2.0 + 2.0)) / optimizedWeight
-        
-        shaderString += "sum += texture2D(inputImageTexture, blurCoordinates[0] + singleStepOffset * \(optimizedOffset)) * \(optimizedWeight);\n"
-        shaderString += "sum += texture2D(inputImageTexture, blurCoordinates[0] - singleStepOffset * \(optimizedOffset)) * \(optimizedWeight);\n"
+// MARK: - Fast Shader Debugging
+
+func fileContentsFromBundle(resource: String, ofType type: String) -> String {
+    let bundle = Bundle(for: GaussianBlur.self)
+    guard let file = bundle.path(forResource: resource, ofType: type) else {
+        fatalError("Couldn't find resource \(resource).\(type)")
     }
     
-    shaderString += "gl_FragColor = sum;\n }\n"
-    
-    return shaderString
+    do {
+        return try String(contentsOfFile: file)
+    } catch {
+        fatalError("Error reading contents of \(file): \(error)")
+    }
 }

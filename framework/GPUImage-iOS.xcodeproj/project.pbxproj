@@ -168,6 +168,7 @@
 		BCFB074C1CBF2BC1009B2333 /* ZoomBlur.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFB073E1CBF2BC1009B2333 /* ZoomBlur.swift */; };
 		BCFB07991CBF4B44009B2333 /* TextureInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFB07981CBF4B44009B2333 /* TextureInput.swift */; };
 		BCFB079C1CBF4B92009B2333 /* TextureOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFB079B1CBF4B92009B2333 /* TextureOutput.swift */; };
+		FAF6ACA01DA300CC00D27A1E /* OptimizedGaussianBlur_GLES.fsh in Resources */ = {isa = PBXBuildFile; fileRef = FAF6AC9B1DA3001800D27A1E /* OptimizedGaussianBlur_GLES.fsh */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -479,6 +480,8 @@
 		BCFB079B1CBF4B92009B2333 /* TextureOutput.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TextureOutput.swift; path = Source/TextureOutput.swift; sourceTree = "<group>"; };
 		BCFB079D1CBF4E39009B2333 /* FiveInput.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = FiveInput.vsh; path = Source/Operations/Shaders/FiveInput.vsh; sourceTree = "<group>"; };
 		BCFB079E1CBF4E39009B2333 /* FourInput.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = FourInput.vsh; path = Source/Operations/Shaders/FourInput.vsh; sourceTree = "<group>"; };
+		FAF6AC9B1DA3001800D27A1E /* OptimizedGaussianBlur_GLES.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = OptimizedGaussianBlur_GLES.fsh; path = Source/Operations/Shaders/OptimizedGaussianBlur_GLES.fsh; sourceTree = "<group>"; };
+		FAF6AC9C1DA3001800D27A1E /* OptimizedGaussianBlur.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = OptimizedGaussianBlur.vsh; path = Source/Operations/Shaders/OptimizedGaussianBlur.vsh; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -789,6 +792,8 @@
 				BCBEC0F01CCD49B800B70ED7 /* HistogramEqualizationRed_GLES.fsh */,
 				BCBEC0F11CCD49B800B70ED7 /* HistogramEqualizationRGB_GLES.fsh */,
 				BCFB06931CBF284A009B2333 /* GaussianBlur.swift */,
+				FAF6AC9B1DA3001800D27A1E /* OptimizedGaussianBlur_GLES.fsh */,
+				FAF6AC9C1DA3001800D27A1E /* OptimizedGaussianBlur.vsh */,
 				BCFB069F1CBF284A009B2333 /* SingleComponentGaussianBlur.swift */,
 				BCFB06B91CBF2895009B2333 /* BoxBlur.swift */,
 				BCFB06BD1CBF28B4009B2333 /* Erosion.swift */,
@@ -997,6 +1002,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FAF6ACA01DA300CC00D27A1E /* OptimizedGaussianBlur_GLES.fsh in Resources */,
 				BCBEC0F21CCD49B800B70ED7 /* HistogramEqualizationBlue_GLES.fsh in Resources */,
 				BCBEC0F31CCD49B800B70ED7 /* HistogramEqualizationGreen_GLES.fsh in Resources */,
 				BCBEC0F61CCD49B800B70ED7 /* HistogramEqualizationRGB_GLES.fsh in Resources */,

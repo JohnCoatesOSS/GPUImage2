@@ -49,10 +49,16 @@ public struct ShaderUniformSettings {
         get { return uniformValues[index] as? Matrix3x3}
         set(newValue) { uniformValues[index] = newValue }
     }
+    
+    public subscript(index:String) -> [Float]? {
+        get { return uniformValues[index] as? [Float]}
+        set(newValue) { uniformValues[index] = newValue }
+    }
 
     func restoreShaderSettings(_ shader:ShaderProgram) {
         for (uniform, value) in uniformValues {
             switch value {
+            case let value as [Float]: shader.setValue(value, forUniform: uniform)
                 case let value as Float: shader.setValue(GLfloat(value), forUniform:uniform)
                 case let value as Int: shader.setValue(GLint(value), forUniform:uniform)
                 case let value as Color: shader.setValue(value, forUniform:uniform)
