@@ -42,9 +42,26 @@ public class Camera: NSObject, ImageSource, AVCaptureVideoDataOutputSampleBuffer
     var totalFrameTimeDuringCapture:Double = 0.0
     var framesSinceLastCheck = 0
     var lastCheckTime = CFAbsoluteTimeGetCurrent()
+    
+    class func bestCamera() -> AVCaptureDevice {
+        guard let devices = AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo) else {
+            fatalError("No video devices")
+        }
+        for potentialDevice in devices {
+            guard let device = potentialDevice as? AVCaptureDevice else {
+                continue
+            }
+            
+            // prefer my logitech camera
+            if device.localizedName == "HD Pro Webcam C920" {
+                return device
+            }
+        }
+        return AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo)
+    }
 
     public init(sessionPreset:String, cameraDevice:AVCaptureDevice? = nil, orientation:ImageOrientation = .portrait, captureAsYUV:Bool = true) throws {
-        self.inputCamera = cameraDevice ?? AVCaptureDevice.defaultDevice(withMediaType:AVMediaTypeVideo)
+        self.inputCamera = cameraDevice ?? Camera.bestCamera()
         self.orientation = orientation
         self.captureAsYUV = captureAsYUV
         
