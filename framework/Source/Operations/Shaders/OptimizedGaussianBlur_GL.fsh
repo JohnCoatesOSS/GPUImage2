@@ -25,7 +25,7 @@ void main() {
     if (TRUE_OPTIMIZED_OFFSETS_COUNT > NUMBER_OF_OPTIMIZED_OFFSETS) {
         vec2 singleStepOffset = vec2(texelWidth, texelHeight);
         
-        int currentOverlowTextureRead = NUMBER_OF_OPTIMIZED_OFFSETS;
+        int currentOverflowTextureRead = NUMBER_OF_OPTIMIZED_OFFSETS;
         while (currentOverflowTextureRead < TRUE_OPTIMIZED_OFFSETS_COUNT) {
             int baseIndex = currentOverflowTextureRead * 2;
             float firstWeight = standardWeights[baseIndex + 1];
@@ -36,7 +36,7 @@ void main() {
             sum += texture2D(inputImageTexture, blurCoordinates[0] + singleStepOffset *optimizedOffset) * optimizedWeight;
             sum += texture2D(inputImageTexture, blurCoordinates[0] - singleStepOffset * optimizedOffset) * optimizedWeight;
             
-            currentOverlowTextureRead++;
+            currentOverflowTextureRead++;
         }
     }
     
