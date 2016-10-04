@@ -31,12 +31,14 @@ class FilterShowcaseWindowController: NSWindowController {
 
         do {
             videoCamera = try Camera(sessionPreset:AVCaptureSessionPreset1280x720)
-            videoCamera.runBenchmark = true
+            videoCamera.runBenchmark = false
             videoCamera.startCapture()
         } catch {
             fatalError("Couldn't initialize camera with error: \(error)")
         }
-        self.changeSelectedRow(0)
+        let gaussianBlurRow = 65
+        self.changeSelectedRow(gaussianBlurRow)
+        currentSliderValue = 25
     }
     
     func changeSelectedRow(_ row:Int) {
