@@ -168,6 +168,10 @@
 		BCFB074C1CBF2BC1009B2333 /* ZoomBlur.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFB073E1CBF2BC1009B2333 /* ZoomBlur.swift */; };
 		BCFB07991CBF4B44009B2333 /* TextureInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFB07981CBF4B44009B2333 /* TextureInput.swift */; };
 		BCFB079C1CBF4B92009B2333 /* TextureOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFB079B1CBF4B92009B2333 /* TextureOutput.swift */; };
+		FA8E18281DAE2E0400B5C470 /* ShaderArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8E18241DAE2E0400B5C470 /* ShaderArray.swift */; };
+		FA8E18291DAE2E0400B5C470 /* ShaderDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8E18251DAE2E0400B5C470 /* ShaderDSL.swift */; };
+		FA8E182A1DAE2E0400B5C470 /* ShaderOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8E18261DAE2E0400B5C470 /* ShaderOperators.swift */; };
+		FA8E182B1DAE2E0400B5C470 /* Statement.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8E18271DAE2E0400B5C470 /* Statement.swift */; };
 		FAF6ACA01DA300CC00D27A1E /* OptimizedGaussianBlur_GLES.fsh in Resources */ = {isa = PBXBuildFile; fileRef = FAF6AC9B1DA3001800D27A1E /* OptimizedGaussianBlur_GLES.fsh */; };
 /* End PBXBuildFile section */
 
@@ -480,6 +484,10 @@
 		BCFB079B1CBF4B92009B2333 /* TextureOutput.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TextureOutput.swift; path = Source/TextureOutput.swift; sourceTree = "<group>"; };
 		BCFB079D1CBF4E39009B2333 /* FiveInput.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = FiveInput.vsh; path = Source/Operations/Shaders/FiveInput.vsh; sourceTree = "<group>"; };
 		BCFB079E1CBF4E39009B2333 /* FourInput.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = FourInput.vsh; path = Source/Operations/Shaders/FourInput.vsh; sourceTree = "<group>"; };
+		FA8E18241DAE2E0400B5C470 /* ShaderArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShaderArray.swift; sourceTree = "<group>"; };
+		FA8E18251DAE2E0400B5C470 /* ShaderDSL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShaderDSL.swift; sourceTree = "<group>"; };
+		FA8E18261DAE2E0400B5C470 /* ShaderOperators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShaderOperators.swift; sourceTree = "<group>"; };
+		FA8E18271DAE2E0400B5C470 /* Statement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Statement.swift; sourceTree = "<group>"; };
 		FAF6AC9B1DA3001800D27A1E /* OptimizedGaussianBlur_GLES.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = OptimizedGaussianBlur_GLES.fsh; path = Source/Operations/Shaders/OptimizedGaussianBlur_GLES.fsh; sourceTree = "<group>"; };
 		FAF6AC9C1DA3001800D27A1E /* OptimizedGaussianBlur.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = OptimizedGaussianBlur.vsh; path = Source/Operations/Shaders/OptimizedGaussianBlur.vsh; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -551,6 +559,7 @@
 		BCE316E81CA0E59B00323D5B /* Base */ = {
 			isa = PBXGroup;
 			children = (
+				FA8E18231DAE2E0400B5C470 /* DSL */,
 				BCE316F71CA0E69800323D5B /* Pipeline.swift */,
 				BCE316F91CA0E69800323D5B /* ShaderProgram.swift */,
 				BC6A139B1CBB503900387779 /* ShaderUniformSettings.swift */,
@@ -908,6 +917,18 @@
 			name = Effects;
 			sourceTree = "<group>";
 		};
+		FA8E18231DAE2E0400B5C470 /* DSL */ = {
+			isa = PBXGroup;
+			children = (
+				FA8E18241DAE2E0400B5C470 /* ShaderArray.swift */,
+				FA8E18251DAE2E0400B5C470 /* ShaderDSL.swift */,
+				FA8E18261DAE2E0400B5C470 /* ShaderOperators.swift */,
+				FA8E18271DAE2E0400B5C470 /* Statement.swift */,
+			);
+			name = DSL;
+			path = Source/DSL;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -970,7 +991,7 @@
 				TargetAttributes = {
 					BCD1B1241C66A262001F2BDC = {
 						CreatedOnToolsVersion = 7.2;
-						DevelopmentTeam = J2U2U9GBML;
+						DevelopmentTeam = E6QK4MU6LM;
 						LastSwiftMigration = 0800;
 					};
 					BCD1B12E1C66A262001F2BDC = {
@@ -1050,6 +1071,7 @@
 				BCFB079C1CBF4B92009B2333 /* TextureOutput.swift in Sources */,
 				BCFB06A61CBF284A009B2333 /* GaussianBlur.swift in Sources */,
 				BCE316FF1CA0E69800323D5B /* SerialDispatch.swift in Sources */,
+				FA8E182B1DAE2E0400B5C470 /* Statement.swift in Sources */,
 				BCFB06891CBF22F2009B2333 /* AverageLuminanceExtractor.swift in Sources */,
 				BCFB07441CBF2BC1009B2333 /* SmoothToonFilter.swift in Sources */,
 				BCFB06BF1CBF28B4009B2333 /* ClosingFilter.swift in Sources */,
@@ -1092,6 +1114,8 @@
 				BCE316FC1CA0E69800323D5B /* OpenGLContext_Shared.swift in Sources */,
 				BCFB06A41CBF284A009B2333 /* ChromaKeying.swift in Sources */,
 				BCFB07271CBF2B94009B2333 /* CGAColorspaceFilter.swift in Sources */,
+				FA8E182A1DAE2E0400B5C470 /* ShaderOperators.swift in Sources */,
+				FA8E18291DAE2E0400B5C470 /* ShaderDSL.swift in Sources */,
 				BCFB06051CBF1FF8009B2333 /* MultiplyBlend.swift in Sources */,
 				BCE316FE1CA0E69800323D5B /* Pipeline.swift in Sources */,
 				BC6A13A31CBB503900387779 /* ImageOrientation.swift in Sources */,
@@ -1100,6 +1124,7 @@
 				BCFB06781CBF228B009B2333 /* AmatorkaFilter.swift in Sources */,
 				BCFB06801CBF22AC009B2333 /* WhiteBalance.swift in Sources */,
 				BCFB065F1CBF21E1009B2333 /* LevelsAdjustment.swift in Sources */,
+				FA8E18281DAE2E0400B5C470 /* ShaderArray.swift in Sources */,
 				BCFB07291CBF2B94009B2333 /* EmbossFilter.swift in Sources */,
 				BCFB06061CBF1FF8009B2333 /* NormalBlend.swift in Sources */,
 				BCFB06C61CBF28E8009B2333 /* Crop.swift in Sources */,
@@ -1298,6 +1323,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1320,6 +1346,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";

@@ -18,12 +18,12 @@ for fileName in fileNames {
     let pathURL = URL(fileURLWithPath:fileName)
     let pathExtension = pathURL.pathExtension
     let baseName = pathURL.deletingPathExtension().lastPathComponent
-    
+
     guard (FileManager.default.fileExists(atPath:pathURL.path)) else {
         print("Error: file \"\(fileName)\" could not be found.")
         continue
     }
-    
+
     let shaderSuffix:String
     if (pathExtension.lowercased() == "vsh") {
         shaderSuffix = "VertexShader"
@@ -32,7 +32,7 @@ for fileName in fileNames {
     } else {
         continue
     }
-    
+
     let convertedShaderName:String
     let shaderPlatform:OpenGLPlatform
     if baseName.hasSuffix("_GLES") {
@@ -45,14 +45,14 @@ for fileName in fileNames {
         convertedShaderName = "\(baseName)\(shaderSuffix)"
         shaderPlatform = .Both
     }
-    
+
     var accumulatedString = "public let \(convertedShaderName) = \""
     let fileContents = try String(contentsOfFile:fileName, encoding:String.Encoding.ascii)
     fileContents.enumerateLines {line, stop in
         accumulatedString += "\(line.replacingOccurrences(of:"\"", with:"\\\""))\\n "
     }
     accumulatedString += "\"\n"
-    
+
     switch (shaderPlatform) {
     case .OpenGL: allConvertedGLShaders += accumulatedString
     case .OpenGLES: allConvertedGLESShaders += accumulatedString
@@ -63,5 +63,9 @@ for fileName in fileNames {
 }
 
 let scriptURL = URL(fileURLWithPath:CommandLine.arguments.first!)
-try allConvertedGLShaders.write(to:scriptURL.deletingLastPathComponent().appendingPathComponent("ConvertedShaders_GL.swift"), atomically:true, encoding:String.Encoding.ascii)
+print("url: \(scriptURL)")
+let glShadersFilepath = scriptURL.deletingLastPathComponent().appendingPathComponent("ConvertedShaders_GL.swift")
+print("writing output to \(glShadersFilepath)")
+print("output: \(allConvertedGLShaders)")
+try allConvertedGLShaders.write(to:glShadersFilepath, atomically:true, encoding:String.Encoding.ascii)
 try allConvertedGLESShaders.write(to:scriptURL.deletingLastPathComponent().appendingPathComponent("ConvertedShaders_GLES.swift"), atomically:true, encoding:String.Encoding.ascii)
